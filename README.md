@@ -140,7 +140,7 @@ Besides the hashed files, `hashets` also generated a `hashets_map.go` file,
 that contains the `FileNames` `hashets.Map`, that maps the original file names
 to their hashed equivalents:
 
-### During CI for assets known at compile time
+### During CI
 
 > **This method is for you, if:**
 >
@@ -165,8 +165,7 @@ static
 └── static.go
 ```
 
-`static.go`:
-
+`static.go`
 ```go
 package static
 
@@ -178,6 +177,7 @@ import "embed"
 var FS embed.FS
 ```
 
+`hashets_map.go`
 ```go
 package static
 
