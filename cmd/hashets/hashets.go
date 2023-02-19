@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec
 	"crypto/sha256"
 	"crypto/sha512"
 	"flag"
@@ -17,17 +17,23 @@ import (
 )
 
 var (
-	// FLAGS
+	//
+	// FLAGS.
+
 	hashingAlgorithm hash.Hash
 	ignore           []string
 	replace          bool
 	outPath          string
 	fileNamesVar     string
 
-	// ARGS
+	//
+	// ARGS.
+
 	inPath string
 
-	// ENVS
+	//
+	// ENVS.
+
 	packageName string // GOPACKAGE
 )
 

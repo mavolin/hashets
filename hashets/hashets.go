@@ -3,7 +3,6 @@ package hashets
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -42,9 +41,8 @@ func Hash(inFS fs.FS, o Options) (Map, error) {
 	o.setDefaults()
 
 	m := make(Map)
-	err := fs.WalkDir(inFS, ".", func(path string, dir fs.DirEntry, err error) error {
+	err := fs.WalkDir(inFS, ".", func(path string, dir fs.DirEntry, _ error) error {
 		path = strings.TrimPrefix(path, "./")
-		fmt.Println(path)
 		if dir == nil || dir.IsDir() {
 			if o.Ignore(path) {
 				return fs.SkipDir
@@ -137,7 +135,7 @@ func HashToDir(inFS fs.FS, outPath string, o Options) (Map, error) {
 		path = strings.TrimPrefix(path, "./")
 		if dir == nil || dir.IsDir() {
 			if dir != nil && dir.IsDir() && path != "." {
-				if err := os.Mkdir(outPath+"/"+path, 0755); err != nil {
+				if err := os.Mkdir(outPath+"/"+path, 0o755); err != nil {
 					if !errors.Is(err, os.ErrExist) {
 						return err
 					}
@@ -199,7 +197,7 @@ func writeHashed(inFS fs.FS, inPath, outPath string, m Map, o Options) error {
 		return err
 	}
 
-	out, err := os.OpenFile(outPath+"/"+hashedPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode()&0555)
+	out, err := os.OpenFile(outPath+"/"+hashedPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode()&0o555)
 	if err != nil {
 		return err
 	}

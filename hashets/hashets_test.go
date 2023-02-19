@@ -46,11 +46,6 @@ func TestHash(t *testing.T) {
 func TestHashToDir(t *testing.T) {
 	t.Parallel()
 
-	var (
-		testdataIn     = os.DirFS("../testdata/in")
-		testdataExpect = os.DirFS("../testdata/expect")
-	)
-
 	dir := t.TempDir()
 
 	actual, err := HashToDir(testdataIn, dir, Options{})
@@ -63,11 +58,6 @@ func TestHashToDir(t *testing.T) {
 func TestHashToTempDir(t *testing.T) {
 	t.Parallel()
 
-	var (
-		testdataIn     = os.DirFS("../testdata/in")
-		testdataExpect = os.DirFS("../testdata/expect")
-	)
-
 	actualFS, actualMap, cleanup, err := HashToTempDir(testdataIn, Options{})
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -79,11 +69,11 @@ func TestHashToTempDir(t *testing.T) {
 }
 
 func dirsEqual(t *testing.T, a, b fs.FS) {
-	_ = fs.WalkDir(a, ".", func(path string, d fs.DirEntry, err error) error {
+	_ = fs.WalkDir(a, ".", func(path string, d fs.DirEntry, _ error) error {
 		var statA, statB fs.FileInfo
 
 		if path != "." {
-			statA, err = fs.Stat(a, path)
+			statA, err := fs.Stat(a, path)
 			require.NoError(t, err)
 
 			statB, err = fs.Stat(b, path)
@@ -91,9 +81,9 @@ func dirsEqual(t *testing.T, a, b fs.FS) {
 				if errors.Is(err, fs.ErrNotExist) {
 					assert.Failf(t, "a: %s: not found", path)
 					return nil
-				} else {
-					require.NoError(t, err)
 				}
+
+				require.NoError(t, err)
 			}
 
 			if statA.IsDir() != statB.IsDir() {
