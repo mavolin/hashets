@@ -1,110 +1,223 @@
 <div align="center">
-<h1>corgi</h1>
+<h1>hashets</h1>
 
-[![GitBook](https://img.shields.io/badge/Docs-GitBook-blue)](https://mavolin.gitbook.io/corgi)
-[![Test](https://github.com/mavolin/corgi/actions/workflows/test.yml/badge.svg)](https://github.com/mavolin/corgi/actions)
-[![Code Coverage](https://codecov.io/gh/mavolin/corgi/branch/develop/graph/badge.svg?token=ewFEQGgMES)](https://codecov.io/gh/mavolin/corgi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mavolin/corgi)](https://goreportcard.com/report/github.com/mavolin/corgi)
-[![License MIT](https://img.shields.io/github/license/mavolin/corgi)](https://github.com/mavolin/corgi/blob/develop/LICENSE)
+[![Test](https://github.com/mavolin/hashets/actions/workflows/test.yml/badge.svg)](https://github.com/mavolin/hashets/actions)
+[![Code Coverage](https://codecov.io/gh/mavolin/hashets/branch/develop/graph/badge.svg?token=ewFEQGgMES)](https://codecov.io/gh/mavolin/hashets)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mavolin/hashets)](https://goreportcard.com/report/github.com/mavolin/hashets)
+[![License MIT](https://img.shields.io/github/license/mavolin/hashets)](./LICENSE)
 </div>
 
 ---
 
 ## About
 
-Corgi is an HTML template language for Go, inspired by pug (hence the name).
-Just like pug, corgi also uses code generation to generate its templates.
+Hashets (a portmanteau of 'hash' and 'assets') is a utility for handling cache
+busting of static assets.
+It works by adding the hash of the file's contents to the file name.
 
 ## Main Features
 
-* 👀 Highly readable syntax, not just replacing placeholders
-* 👪 Support for inheritance
-* ➕ Mixins—functions that render repeated pieces of corgi
-* 🗄 Import mixins from other files, just like you would import Go packages
-* 🖇 Split large templates into multiple files
-* ✨ Import any Go package and use its constants, variables, types, and functions—no need for `FuncMap`s or the like
-* 🤏 Generates minified HTML (and through the use of filters also minified CSS and JS)
-* 🔒 Automatically escapes interpolated HTML, CSS and JS
+* ⚡ Three options:
+  1. Either generate files before compiling,
+  2. use `hashets.HashToDir` or `hashets.HashToTempDir` at runtime,
+  3. or create a `hashets.FSWrapper` which translates requests for hashed file names to their original names.
+* 🧒 Easy integration into templates by using a map of file names to hashed file names
+* 📦 Support for `fs.FS`
+* 🏖 Hassle-free versioning, that only causes refetching of files only when their contents change (vs. `?v=1.2.3`)
 
-## Example
+## Examples
 
-First impressions matter, so here is an example of a simple template:
+First impressions matter, so here are some examples of how to use hashets.
 
-```jade
-import "strings"
+### Using `hashets.WrapFS`
 
-//- These are the name and params of the function that corgi will generate.
-//- Besides the params you specify here, corgi will also add an io.Writer that
-//- it'll write the output to, and an error return, that returns any errors
-//- it encounters when writing to the io.Writer.
-//-
-//- The real signature will look like this:
-//- func LearnCorgi(__w io.Writer, name string, knowsPug bool, friends []string) error
-func LearnCorgi(name string, knowsPug bool, friends []string)
+> **This method is for you, if:**
+> 
+> * 🧒 You want the easiest solution of all
+> * 🤏 Have small assets, or you don't mind if your application takes a few milliseconds longer to start
+> * 🕚 You know your assets at compile or runtime
+> * 🕵 You need cache busting during development and not just in production
 
-mixin greet(name string)
-  | Hello, #{name}!
+`hashets.WrapFS` simply wraps an `fs.FS`, calculates the hashes of all its files, and
+translates requests for hashed file names to their original names:
 
-html(lang="en")
-  head
-    title Learn Corgi
-  body
-    h1 Learn Corgi
-    p#features.font-size--big
-      +greet(name=name)
+Add a `static.go` to your `static` directory:
 
-    p
-      if knowsPug
-        | #{name}, since you already know pug,
-        | learning corgi will be even more of #strong[a breeze] for you!
-        |
-
-      
-      | Head over to
-      | #a(href="https://mavolin.gitbook.io/corgi")[GitBook]
-      | to learn it.
-
-    switch len(friends)
-      case 0
-      case 1
-        p And make sure to tell #{friends[0]} about corgi too!
-      case 2
-        p And make sure to tell #{friends[0]} and #{friends[1]} about corgi too!
-      default
-        p.
-          And make sure to tell
-          #{strings.Join(friends[:len(friends)-1], ", ")},
-          and #{friends[len(friends)-1]} about corgi too!
+```
+static
+├── file_to_hash.ext
+└── static.go
 ```
 
-Pretty-Printed output:
+```go
+package static
+
+import (
+	"embed"
+
+	"github.com/mavolin/hashets/hashets"
+)
+
+//go:embed file_to_hash.ext
+var assets embed.FS
+
+var (
+	FS        *hashets.FSWrapper
+	FileNames hashets.Map
+)
+
+func init() {
+	var err error
+	FS, FileNames, err = hashets.WrapFS(assets, hashets.Options{})
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+`FS` now translates requests for `FS.Open("file_to_hash_generateHash.ext")` to `assets.Open("file_to_hash.ext")`.
+Additionally, `FileNames` maps all original file names to their hashed equivalents:
+
+```go
+var FileNames = hashets.Map{
+    "file_to_hash.ext": "file_to_hash_generateHash.ext",
+}
+```
+
+Use this map in your templates to generate links to your assets:
 
 ```html
-<!-- LearnCorgi(myWriter, "Maxi", true, []string{"Huey", "Dewey", "Louie"}) -->
-
-<!doctype html>
-<html lang="en">
-<head>
-    <title>Learn Corgi</title>
-</head>
-<body>
-<h1>Learn Corgi</h1>
-<p id="features" class="font-size--big">Hello, Maxi!</p>
-<p>
-    Maxi, since you already know pug,
-    learning corgi will be even more of <strong>a breeze</strong> for you!
-    Head over to <a href="https://mavolin.gitbook.io/corgi">GitBook</a> to
-    learn it.
-</p>
-<p>And make sure to tell Huey, Dewey, and Louie about corgi too!</p>
-</body>
-</html>
+<link rel="stylesheet" href="/static/{{ .FileNames.Get "file_to_hash.ext" }}">
 ```
 
-## Want to know more?
+Then simply serve `FS` under `/static`:
 
-Have a look at the guide on [GitBook](https://mavolin.gitbook.io/corgi).
-If you already know pug, you can also find a detailed list of differences there.
+```go
+http.Handle("/static/", http.FileServer(http.FS(FS)))
+```
+
+Of course, instead of an `embed.FS`, you can also use any other `fs.FS` implementation, such as `os.DirFS`, etc.
+
+### Using `go generate`
+
+> **This method is for you, if:**
+>
+> * 📏 You have larger assets and need lightning fast startup times
+> * 🕑 You know your assets at compile time
+> * 🕵 You need cache busting during development and not just in production
+
+Add a `static.go` to your `static` directory:
+
+```
+static
+├── orig
+│   └── file_to_hash.ext
+└── static.go
+```
+
+```go
+package static
+
+import "static/hashed"
+
+//go:generate hashets -o hashed orig
+```
+
+Now run `go generate`.
+Your file structure should now look like this:
+
+```
+static
+├── hashed
+│   ├── file_to_hash_generateHash.ext
+│   └── hashets_map.go
+├── orig
+│   └── file_to_hash.ext
+└── static.go
+```
+
+Besides the hashed files, `hashets` also generated a `hashets_map.go` file,
+that contains the `FileNames` `hashets.Map`, that maps the original file names
+to their hashed equivalents:
+
+### During CI for assets known at compile time
+
+> **This method is for you, if:**
+>
+> * 📏 You have larger assets and need lightning fast startup times
+> * 🕑 You know your assets at compile time
+> * 🤷 You don't need cache busting during development
+
+The `go generate` solution has one big flaw:
+If you generate static assets in the same `go generate` run and `hashets` is
+executed before the files are generated, the hashes will be wrong.
+If those generated files aren't even deterministic, even a second run of `go generate`
+won't fix our problem.
+
+Luckily, there is another handy solution:
+
+Add a `static.go` and a `hashets_map.go` to your `static` directory:
+
+```
+static
+├── file_to_hash.ext
+├── hashets_map.go
+└── static.go
+```
+
+`static.go`:
+
+```go
+package static
+
+import "embed"
+
+// It is important that you use wildcards for your files, as otherwise the
+// hashed files generated by your CI won't be included in the embed.FS.
+//go:embed file_to_hash*.txt
+var FS embed.FS
+```
+
+```go
+package static
+
+import "github.com/mavolin/hashets"
+
+// FileNames maps the original file names to their hashed equivalents.
+// Unless you run hashets, this map will be nil, which causes [hashets.Map.Get]
+// to behave specially:
+// Instead of returning the hashed file name, it will return the path that it
+// is given.
+//
+// This means, unless you run hashets, you will simply use your unhashed assets.
+var FileNames hashets.Map
+```
+
+Now, in your CI, run `hashets` before compiling:
+
+```sh
+hashets -replace -ignore static.go static
+```
+
+This will replace all of your assets with their hashed equivalents, i.e.
+replace `file_to_hash.ext` with `file_to_hash_generateHash.ext`.
+Additionally, it will overwrite `hashets_map.go` with a `FileNames` map that
+contains the correct mappings.
+
+### Using `hashets.HashToDir` and `hashets.HashToTempDir`
+
+> **This method is for you, if:**
+>
+> * 🛠 You need maximum customizability
+> * 🤏 You have smaller assets or don't mind if your application takes a few milliseconds longer to start
+> * 🕚 You know your assets at compile or runtime
+> * 🕵 You need cache busting during development and not just in production
+
+If all of the above don't do the trick for you, you can also create hashes by
+hand using `hashets.HashToDir` and `hashets.HashToTempDir`, which generate
+hashed files and write them to an arbitrary or a temporary directory.
+
+Head over to [`pkg.go.dev`](https://pkg.go.dev/github.com/mavolin/hashets) to read more.
 
 ## License
 
