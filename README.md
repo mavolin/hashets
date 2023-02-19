@@ -18,9 +18,9 @@ It works by adding the hash of the file's contents to the file name.
 ## Main Features
 
 * ⚡ Three options:
-  1. Either generate files before compiling,
-  2. use `hashets.HashToDir` or `hashets.HashToTempDir` at runtime,
-  3. or create a `hashets.FSWrapper` which translates requests for hashed file names to their original names.
+    1. Either generate files before compiling,
+    2. use `hashets.HashToDir` or `hashets.HashToTempDir` at runtime,
+    3. or create a `hashets.FSWrapper` which translates requests for hashed file names to their original names.
 * 🧒 Easy integration into templates by using a map of file names to hashed file names
 * 📦 Support for `fs.FS`
 * 🏖 Hassle-free versioning, that only causes refetching of files only when their contents change (vs. `?v=1.2.3`)
@@ -32,7 +32,7 @@ First impressions matter, so here are some examples of how to use hashets.
 ### Using `hashets.WrapFS`
 
 > **This method is for you, if:**
-> 
+>
 > * 🧒 You want the easiest solution of all
 > * 🤏 Have small assets, or you don't mind if your application takes a few milliseconds longer to start
 > * 🕚 You know your assets at compile or runtime
@@ -80,7 +80,7 @@ Additionally, `FileNames` maps all original file names to their hashed equivalen
 
 ```go
 var FileNames = hashets.Map{
-    "file_to_hash.ext": "file_to_hash_generateHash.ext",
+"file_to_hash.ext": "file_to_hash_generateHash.ext",
 }
 ```
 
@@ -140,7 +140,7 @@ Besides the hashed files, `hashets` also generated a `hashets_map.go` file,
 that contains the `FileNames` `hashets.Map`, that maps the original file names
 to their hashed equivalents:
 
-### During CI for assets known at compile time
+### During CI
 
 > **This method is for you, if:**
 >
@@ -165,8 +165,7 @@ static
 └── static.go
 ```
 
-`static.go`:
-
+`static.go`
 ```go
 package static
 
@@ -178,6 +177,7 @@ import "embed"
 var FS embed.FS
 ```
 
+`hashets_map.go`
 ```go
 package static
 
