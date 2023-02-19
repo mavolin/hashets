@@ -1,6 +1,7 @@
 <div align="center">
 <h1>hashets</h1>
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/mavolin/hashets.svg)](https://pkg.go.dev/github.com/mavolin/hashets)
 [![Test](https://github.com/mavolin/hashets/actions/workflows/test.yml/badge.svg)](https://github.com/mavolin/hashets/actions)
 [![Code Coverage](https://codecov.io/gh/mavolin/hashets/branch/develop/graph/badge.svg?token=ewFEQGgMES)](https://codecov.io/gh/mavolin/hashets)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mavolin/hashets)](https://goreportcard.com/report/github.com/mavolin/hashets)
@@ -217,7 +218,7 @@ If all of the above don't do the trick for you, you can also create hashes by
 hand using `hashets.HashToDir` and `hashets.HashToTempDir`, which generate
 hashed files and write them to an arbitrary or a temporary directory.
 
-Head over to [`pkg.go.dev`](https://pkg.go.dev/github.com/mavolin/hashets) to read more.
+Head over to [pkg.go.dev](https://pkg.go.dev/github.com/mavolin/hashets) to read more.
 
 ## License
 
