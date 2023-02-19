@@ -1,12 +1,11 @@
 before:
   hooks:
     - go mod tidy
-    - go generate ./...
 builds:
-  - main: ./cmd/corgi
+  - main: ./cmd/hashets
     ldflags:
-      - -X github.com/mavolin/corgi/internal/meta.Version={{.Tag}}
-      - -X github.com/mavolin/corgi/internal/meta.Commit={{.Commit}}
+      - -X github.com/mavolin/hashets/internal/meta.Version={{.Tag}}
+      - -X github.com/mavolin/hashets/internal/meta.Commit={{.Commit}}
     env:
       - CGO_ENABLED=0
     goos:
