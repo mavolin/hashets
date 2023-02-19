@@ -18,10 +18,10 @@ func TestHash(t *testing.T) {
 	t.Run("no options", func(t *testing.T) {
 		t.Parallel()
 
-		actual, err := Hash(testdataIn, Options{})
+		actualMap, err := Hash(testdataIn, Options{})
 		require.NoError(t, err)
 
-		assert.Equal(t, expectMap, actual)
+		assert.Equal(t, expectMap, actualMap)
 	})
 
 	t.Run("with ignore func", func(t *testing.T) {
@@ -41,6 +41,21 @@ func TestHash(t *testing.T) {
 
 		assert.Equal(t, expect, actual)
 	})
+}
+
+func TestHashFile(t *testing.T) {
+	t.Parallel()
+
+	f, err := testdataIn.Open("bee movie.txt")
+	require.NoError(t, err)
+	defer f.Close()
+
+	expect := expectMap["bee movie.txt"]
+
+	actual, err := HashFile("bee movie.txt", f, Options{})
+	require.NoError(t, err)
+
+	assert.Equal(t, expect, actual)
 }
 
 func TestHashToDir(t *testing.T) {
@@ -73,7 +88,8 @@ func dirsEqual(t *testing.T, a, b fs.FS) {
 		var statA, statB fs.FileInfo
 
 		if path != "." {
-			statA, err := fs.Stat(a, path)
+			var err error
+			statA, err = fs.Stat(a, path)
 			require.NoError(t, err)
 
 			statB, err = fs.Stat(b, path)

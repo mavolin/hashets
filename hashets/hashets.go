@@ -82,6 +82,21 @@ func Hash(inFS fs.FS, o Options) (Map, error) {
 	return m, nil
 }
 
+// HashFile takes the given [io.Reader], calculates the hash of its contents
+// and returns the hashed file name, as returned by [Options.NamingFunc], using
+// name as the original file name.
+func HashFile(name string, in io.Reader, o Options) (string, error) {
+	o.setDefaults()
+
+	o.Hash.Reset()
+	if _, err := io.Copy(o.Hash, in); err != nil {
+		return "", err
+	}
+
+	hash := o.Hash.Sum(nil)
+	return o.NamingFunc(name, o.HashToText(hash)), nil
+}
+
 // HashToTempDir takes the given [fs.FS], hashes all its files using the options
 // provided and returns a new [fs.FS] that stores the hashed files in a temp
 // directory on the local filesystem.
