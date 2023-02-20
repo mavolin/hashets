@@ -10,7 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
+
+	"github.com/bmatcuk/doublestar"
 
 	"github.com/mavolin/hashets/hashets"
 	"github.com/mavolin/hashets/internal/meta"
@@ -22,6 +23,7 @@ var (
 
 	hashingAlgorithm hash.Hash
 	ignore           []string
+	include          []string
 	replace          bool
 	outPath          string
 	fileNamesVar     string
@@ -39,10 +41,27 @@ var (
 
 func init() {
 	hashingAlgoStr := flag.String("hash", "sha256", "hashing algorithm to use (sha256, sha512, md5)")
-	flag.Func("ignore", "ignores paths with the given prefix", func(s string) error {
+	flag.Func("ignore", "ignores paths that match the glob", func(s string) error {
+		_, err := doublestar.PathMatch(s, "")
+		if err != nil {
+			return err
+		}
+
 		ignore = append(ignore, s)
 		return nil
 	})
+	flag.Func("include",
+		"includes only paths that match the glob\n"+
+			"if both -include and -ignore are set, a file must be included and not ignored to be hashed",
+		func(s string) error {
+			_, err := doublestar.PathMatch(s, "")
+			if err != nil {
+				return err
+			}
+
+			include = append(include, s)
+			return nil
+		})
 	flag.BoolVar(&replace, "replace", false, "replace the original files")
 	flag.StringVar(&outPath, "o", "", "output directory (default DIR)")
 	flag.StringVar(&fileNamesVar, "var", "FileNames", "name of the variable in hashets_map.go")
@@ -71,6 +90,7 @@ func init() {
 	if outPath == "" {
 		outPath = inPath
 	} else {
+		outPath = filepath.Clean(outPath)
 		err := os.Mkdir(outPath, 0o755)
 		if err != nil && !os.IsExist(err) {
 			fmt.Fprintln(os.Stderr, "failed to create output directory:", err)
@@ -103,18 +123,30 @@ func usage() {
 func main() {
 	m, err := hashets.HashToDir(os.DirFS(inPath), outPath, hashets.Options{
 		Hash: hashingAlgorithm,
-		Ignore: func(path string) bool {
-			if path == "hashets_map.go" {
+		Ignore: func(p string) bool {
+			if p == "hashets_map.go" {
 				return true
 			}
 
-			for _, prefix := range ignore {
-				if strings.HasPrefix(path, prefix) {
+			for _, pattern := range ignore {
+				// filepath.Clean to convert the slash-based fs path to an
+				// os-style path
+				if match, _ := doublestar.PathMatch(pattern, filepath.Clean(p)); match {
 					return true
 				}
 			}
 
-			return false
+			if len(include) == 0 {
+				return false
+			}
+
+			for _, pattern := range include {
+				if match, _ := doublestar.PathMatch(pattern, filepath.Clean(p)); match {
+					return false
+				}
+			}
+
+			return true
 		},
 	})
 	if err != nil {
