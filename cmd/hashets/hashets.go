@@ -104,9 +104,28 @@ func init() {
 		}
 	}
 
-	packageName = os.Getenv("GOPACKAGE")
-	if packageName == "" {
+	if filepath.Clean(outPath) == "." {
+		packageName = os.Getenv("GOPACKAGE")
+		if packageName == "" {
+			abs, err := filepath.Abs(outPath)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to get absolute path:", err)
+				os.Exit(1)
+			}
+
+			packageName = filepath.Base(abs)
+		}
+	} else {
 		packageName = filepath.Base(outPath)
+		if packageName == "." {
+			abs, err := filepath.Abs(outPath)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to get absolute path:", err)
+				os.Exit(1)
+			}
+
+			packageName = filepath.Base(abs)
+		}
 	}
 }
 
