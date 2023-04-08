@@ -12,19 +12,18 @@
 
 ## About
 
-Hashets (a portmanteau of 'hash' and 'assets') is a utility for handling cache
-busting of static assets.
+Hashets (a portmanteau of 'hash' and 'assets') is a utility for handling cache busting of static assets.
 It works by adding the hash of the file's contents to the file name.
 
 ## Main Features
 
 * ⚡ Three options:
-    1. Either generate files before compiling,
+    1. Either generate files with hashed names before compiling,
     2. use `hashets.HashToDir` or `hashets.HashToTempDir` at runtime,
     3. or create a `hashets.FSWrapper` which translates requests for hashed file names to their original names.
 * 🧒 Easy integration into templates by using a map of file names to hashed file names
 * 📦 Support for `fs.FS`
-* 🏖 Hassle-free versioning, that only causes refetching of files only when their contents change (vs. `?v=1.2.3`)
+* 🏖 Hassle-free versioning, that only causes refetching of files when their contents change (vs. `?v=1.2.3`)
 
 ## Examples
 
@@ -36,11 +35,11 @@ First impressions matter, so here are some examples of how to use hashets.
 >
 > * 🧒 You want the easiest solution of all
 > * 🤏 Have small assets, or you don't mind if your application takes a few milliseconds longer to start
-> * 🕚 You know your assets at compile or runtime
+> * 🕚 You know your assets at runtime
 > * 🕵 You need cache busting during development and not just in production
 
-`hashets.WrapFS` simply wraps an `fs.FS`, calculates the hashes of all its files, and
-translates requests for hashed file names to their original names:
+`hashets.WrapFS` simply wraps an `fs.FS`, calculates the hashes of all its files,
+and translates requests for hashed file names to their original names:
 
 Add a `static.go` to your `static` directory:
 
@@ -81,7 +80,7 @@ Additionally, `FileNames` maps all original file names to their hashed equivalen
 
 ```go
 var FileNames = hashets.Map{
-"file_to_hash.ext": "file_to_hash_generateHash.ext",
+    "file_to_hash.ext": "file_to_hash_generateHash.ext",
 }
 ```
 
@@ -141,6 +140,16 @@ Besides the hashed files, `hashets` also generated a `hashets_map.go` file,
 that contains the `FileNames` `hashets.Map`, that maps the original file names
 to their hashed equivalents:
 
+```go
+package hashed
+
+import "github.com/mavolin/hashets/hashets"
+
+var FileNames = hashets.Map{
+    "file_to_hash.ext": "file_to_hash_generateHash.ext",
+}
+```
+
 ### During CI
 
 > **This method is for you, if:**
@@ -149,11 +158,9 @@ to their hashed equivalents:
 > * 🕑 You know your assets at compile time
 > * 🤷 You don't need cache busting during development
 
-The `go generate` solution has one big flaw:
+The `go generate` solution has one big drawback:
 If you generate static assets in the same `go generate` run and `hashets` is
 executed before the files are generated, the hashes will be wrong.
-If those generated files aren't even deterministic, even a second run of `go generate`
-won't fix our problem.
 
 Luckily, there is another handy solution:
 
@@ -188,9 +195,9 @@ import "github.com/mavolin/hashets"
 // Unless you run hashets, this map will be nil, which causes [hashets.Map.Get]
 // to behave specially:
 // Instead of returning the hashed file name, it will return the path that it
-// is given.
+// is given as-is.
 //
-// This means, unless you run hashets, you will simply use your unhashed assets.
+// That means, unless you run hashets, you will simply use your unhashed assets.
 var FileNames hashets.Map
 ```
 
@@ -214,8 +221,8 @@ contains the correct mappings.
 > * 🕚 You know your assets at compile or runtime
 > * 🕵 You need cache busting during development and not just in production
 
-If all of the above don't do the trick for you, you can also create hashes by
-hand using `hashets.HashToDir` and `hashets.HashToTempDir`, which generate
+If all of the above don't do the trick for you, you can also create hashes
+using `hashets.HashToDir` and `hashets.HashToTempDir`, which will generate
 hashed files and write them to an arbitrary or a temporary directory.
 
 Head over to [pkg.go.dev](https://pkg.go.dev/github.com/mavolin/hashets) to read more.

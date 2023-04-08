@@ -1,3 +1,5 @@
+// Command hashets provides the CLI for hashets.
+// It can be used to create hashes for files and directories.
 package main
 
 import (
@@ -19,7 +21,7 @@ import (
 
 var (
 	//
-	// FLAGS.
+	// FLAGS
 
 	hashingAlgorithm hash.Hash
 	ignore           []string
@@ -41,18 +43,22 @@ var (
 
 func init() {
 	hashingAlgoStr := flag.String("hash", "sha256", "hashing algorithm to use (sha256, sha512, md5)")
-	flag.Func("ignore", "ignores paths that match the glob", func(s string) error {
-		_, err := doublestar.PathMatch(s, "")
-		if err != nil {
-			return err
-		}
+	flag.Func("ignore",
+		"ignores paths that match the glob\n"+
+			"supports ** globs",
+		func(s string) error {
+			_, err := doublestar.PathMatch(s, "")
+			if err != nil {
+				return err
+			}
 
-		ignore = append(ignore, s)
-		return nil
-	})
+			ignore = append(ignore, s)
+			return nil
+		})
 	flag.Func("include",
 		"includes only paths that match the glob\n"+
-			"if both -include and -ignore are set, a file must be included and not ignored to be hashed",
+			"if both -include and -ignore are set, a file must be included and not ignored to be hashed\n"+
+			"supports ** globs",
 		func(s string) error {
 			_, err := doublestar.PathMatch(s, "")
 			if err != nil {
@@ -62,7 +68,7 @@ func init() {
 			include = append(include, s)
 			return nil
 		})
-	flag.BoolVar(&replace, "replace", false, "replace the original files")
+	flag.BoolVar(&replace, "replace", false, "delete the original original files after hashing")
 	flag.StringVar(&outPath, "o", "", "output directory (default DIR)")
 	flag.StringVar(&fileNamesVar, "var", "FileNames", "name of the variable in hashets_map.go")
 
@@ -105,18 +111,17 @@ func init() {
 }
 
 func usage() {
-	fmt.Fprintln(flag.CommandLine.Output(), "hashets [flags] DIR")
 	fmt.Fprintln(flag.CommandLine.Output())
 	fmt.Fprintln(flag.CommandLine.Output(), meta.Version, "(github.com/mavolin/hashets)")
 	fmt.Fprintln(flag.CommandLine.Output())
-	fmt.Fprintln(flag.CommandLine.Output(), "Generate hashes for all files in DIR, and create a clone of DIR contents")
-	fmt.Fprintln(flag.CommandLine.Output(), "in -o with the file names replaced with the hashes.")
+	fmt.Fprintln(flag.CommandLine.Output(), "Generate hashes for all files in DIR, and create a clone of DIR's contents")
+	fmt.Fprintln(flag.CommandLine.Output(), "in -o with the file names including hashes hashes.")
 	fmt.Fprintln(flag.CommandLine.Output(), "Additionally, places a file named hashets_map.go in -o, that contains")
-	fmt.Fprintln(flag.CommandLine.Output(),
-		"a single variable `fileNames` of type hashets.Map, which maps the original")
+	fmt.Fprintln(flag.CommandLine.Output(), "a single variable `FileNames` of type hashets.Map, which maps the original")
 	fmt.Fprintln(flag.CommandLine.Output(), "file names to the hashed file names.")
 	fmt.Fprintln(flag.CommandLine.Output())
 	fmt.Fprintln(flag.CommandLine.Output(), "Usage:")
+	fmt.Fprintln(flag.CommandLine.Output(), " hashets [flags] DIR")
 	flag.PrintDefaults()
 }
 

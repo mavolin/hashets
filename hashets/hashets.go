@@ -113,9 +113,11 @@ func HashFile(name string, in io.Reader, o Options) (string, error) {
 // path, but with the file name replaced with the hashed file name, as returned
 // by [Options.NamingFunc].
 func HashToTempDir(inFS fs.FS, o Options) (_ fs.FS, _ Map, cleanup func() error, _ error) {
+	cleanup = func() error { return nil }
+
 	outPath, err := os.MkdirTemp("", "hashets")
 	if err != nil {
-		return nil, nil, func() error { return nil }, err
+		return nil, nil, cleanup, err
 	}
 
 	cleanup = func() error { return os.RemoveAll(outPath) }

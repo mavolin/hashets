@@ -7,18 +7,20 @@ import (
 	"strings"
 )
 
-// Options provides configuration options for hashing.
+// Options provides configuration options for the Hash* functions.
 type Options struct {
 	// HashFunc is the hash function to use.
 	//
-	// Defaults to [sha256.New()].
+	// Defaults to [sha256.New].
 	Hash hash.Hash
 
 	// NamingFunc is the function used to generate the file name for the hashed
 	// file.
 	//
 	// For each generated file, NamingFunc is called with the original file
-	// name (not path) and the hash of the file.
+	// name (not path) and the textual hash of the file, as returned by
+	// [Options.HashToText].
+	// It is expected to return a new file name containing the hash.
 	//
 	// Defaults to DefaultNamingFunc.
 	NamingFunc func(name, hash string) string
@@ -31,7 +33,7 @@ type Options struct {
 	// Ignore is called for each file and, if it returns true, the file is
 	// ignored, i.e. not hashed.
 	//
-	// Use IgnorePrefix to ignore files with a certain prefix.
+	// Use the IgnorePrefix helper to ignore files with a certain prefix.
 	//
 	// Defaults to ignoring no files.
 	Ignore func(path string) bool
@@ -56,7 +58,7 @@ func (o *Options) setDefaults() {
 }
 
 // IgnorePrefix returns a func to be used with [Options.Ignore] that ignores
-// all files with a prefix in prefixes.
+// all files that starts with one of the passed prefixes.
 func IgnorePrefix(prefixes ...string) func(string) bool {
 	return func(prefix string) bool {
 		for _, p := range prefixes {
@@ -70,8 +72,7 @@ func IgnorePrefix(prefixes ...string) func(string) bool {
 
 // DefaultNamingFunc is the default naming function used by [Options].
 //
-// It generates names like "foo_1234.txt" for a file "foo.txt" with the hash
-// "1234".
+// For a file "foo.txt" with the hash "1234", it would generate "foo_1234.txt".
 func DefaultNamingFunc(name, hash string) string {
 	base, ext, found := strings.Cut(name, ".")
 	if found {
