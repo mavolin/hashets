@@ -27,6 +27,7 @@ var (
 	ignore           []string
 	include          []string
 	replace          bool
+	mapOnly          bool
 	outPath          string
 	fileNamesVar     string
 
@@ -69,11 +70,17 @@ func init() {
 			return nil
 		})
 	flag.BoolVar(&replace, "replace", false, "delete the original original files after hashing")
+	flag.BoolVar(&mapOnly, "map-only", false, "generate code only without copying files. mutually exclusive with -replace")
 	flag.StringVar(&outPath, "o", "", "output directory (default DIR)")
 	flag.StringVar(&fileNamesVar, "var", "FileNames", "name of the variable in hashets_map.go")
 
 	flag.CommandLine.Usage = usage
 	flag.Parse()
+
+	if mapOnly && replace {
+		fmt.Fprintln(os.Stderr, "cannot replace files when map-only is active")
+		os.Exit(1)
+	}
 
 	switch *hashingAlgoStr {
 	case "sha256":
@@ -145,7 +152,9 @@ func usage() {
 }
 
 func main() {
-	m, err := hashets.HashToDir(os.DirFS(inPath), outPath, hashets.Options{
+	var m hashets.Map
+	var err error
+	opts := hashets.Options{
 		Hash: hashingAlgorithm,
 		Ignore: func(p string) bool {
 			if p == "hashets_map.go" {
@@ -172,13 +181,20 @@ func main() {
 
 			return true
 		},
-	})
+	}
+
+	if mapOnly {
+		m, err = hashets.Hash(os.DirFS(inPath), opts)
+	} else {
+		m, err = hashets.HashToDir(os.DirFS(inPath), outPath, opts)
+	}
+
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to hash files:", err)
 		os.Exit(1)
 	}
 
-	if replace {
+	if !mapOnly && replace {
 		for origName := range m {
 			if err := os.Remove(filepath.Join(outPath, origName)); err != nil {
 				fmt.Fprintln(os.Stderr, "replace: failed to remove original file:", err)
