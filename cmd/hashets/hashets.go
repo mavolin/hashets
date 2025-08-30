@@ -87,12 +87,21 @@ func init() {
 		os.Exit(1)
 	}
 
-	if len(flag.Args()) != 1 {
+	switch flag.NArg() {
+	case 0:
+		if cwd, err := os.Getwd(); err != nil {
+			fmt.Fprintln(os.Stderr, "unable to detect current working directory:", err)
+			os.Exit(1)
+		} else {
+			inPath = cwd
+		}
+	case 1:
+		inPath = filepath.Clean(flag.Arg(0))
+	default:
 		flag.CommandLine.Usage()
 		os.Exit(1)
 	}
 
-	inPath = filepath.Clean(flag.Arg(0))
 	if outPath == "" {
 		outPath = inPath
 	} else {
@@ -133,14 +142,14 @@ func usage() {
 	fmt.Fprintln(flag.CommandLine.Output())
 	fmt.Fprintln(flag.CommandLine.Output(), meta.Version, "(github.com/mavolin/hashets)")
 	fmt.Fprintln(flag.CommandLine.Output())
-	fmt.Fprintln(flag.CommandLine.Output(), "Generate hashes for all files in DIR, and create a clone of DIR's contents")
-	fmt.Fprintln(flag.CommandLine.Output(), "in -o with the file names including hashes hashes.")
+	fmt.Fprintln(flag.CommandLine.Output(), "Generate hashes for all files in the current working directory or given directory")
+	fmt.Fprintln(flag.CommandLine.Output(), ",and clone its content into -o with the file names including hashes hashes.")
 	fmt.Fprintln(flag.CommandLine.Output(), "Additionally, places a file named hashets_map.go in -o, that contains")
 	fmt.Fprintln(flag.CommandLine.Output(), "a single variable `FileNames` of type hashets.Map, which maps the original")
 	fmt.Fprintln(flag.CommandLine.Output(), "file names to the hashed file names.")
 	fmt.Fprintln(flag.CommandLine.Output())
 	fmt.Fprintln(flag.CommandLine.Output(), "Usage:")
-	fmt.Fprintln(flag.CommandLine.Output(), " hashets [flags] DIR")
+	fmt.Fprintln(flag.CommandLine.Output(), " hashets [flags] [DIR]")
 	flag.PrintDefaults()
 }
 
