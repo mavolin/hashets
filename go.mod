@@ -3,7 +3,7 @@ module github.com/mavolin/hashets
 go 1.20
 
 require (
-	github.com/bmatcuk/doublestar v1.3.4
+	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/stretchr/testify v1.8.1
 )
 
