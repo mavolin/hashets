@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/bmatcuk/doublestar"
+	doublestar "github.com/bmatcuk/doublestar/v4"
 
 	"github.com/mavolin/hashets/hashets"
 	"github.com/mavolin/hashets/internal/meta"
@@ -48,9 +48,8 @@ func init() {
 		"ignores paths that match the glob\n"+
 			"supports ** globs",
 		func(s string) error {
-			_, err := doublestar.PathMatch(s, "")
-			if err != nil {
-				return err
+			if !doublestar.ValidatePattern(s) {
+				return fmt.Errorf("invalid ignore pattern %q", s)
 			}
 
 			ignore = append(ignore, s)
@@ -61,9 +60,8 @@ func init() {
 			"if both -include and -ignore are set, a file must be included and not ignored to be hashed\n"+
 			"supports ** globs",
 		func(s string) error {
-			_, err := doublestar.PathMatch(s, "")
-			if err != nil {
-				return err
+			if !doublestar.ValidatePattern(s) {
+				return fmt.Errorf("invalid include pattern %q", s)
 			}
 
 			include = append(include, s)
@@ -170,10 +168,12 @@ func main() {
 				return true
 			}
 
+			// filepath.Clean to convert the slash-based fs path to an
+			// os-style path
+			needle := filepath.Clean(p)
+
 			for _, pattern := range ignore {
-				// filepath.Clean to convert the slash-based fs path to an
-				// os-style path
-				if match, _ := doublestar.PathMatch(pattern, filepath.Clean(p)); match {
+				if doublestar.PathMatchUnvalidated(pattern, needle) {
 					return true
 				}
 			}
@@ -183,7 +183,7 @@ func main() {
 			}
 
 			for _, pattern := range include {
-				if match, _ := doublestar.PathMatch(pattern, filepath.Clean(p)); match {
+				if doublestar.PathMatchUnvalidated(pattern, needle) {
 					return false
 				}
 			}
