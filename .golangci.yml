@@ -1,4 +1,5 @@
 version: "2"
+
 linters:
   default: none
   enable:
@@ -38,10 +39,15 @@ linters:
     - wastedassign
     - whitespace
   settings:
+    errcheck:
+      check-type-assertions: true
     godot:
       exclude:
-        - ^\s*.+:.+$
-        - ^\s*(?:=+|/+|-+|\++)
+        - ^\s*\p{Ll}           # Exclude lowercase comments
+        - ^\s*(?:=+|/+|-+|\++) # Exclude lines that are not identifiers
+        - ^\s*\w+$             # Exclude single-word identifiers
+        - ^(\s*\p{Lu}+)+$      # Exclude sectioning comments (all uppercase)
+        - '[\w\d]:\s+'         # Exclude colons
     unparam:
       check-exported: true
   exclusions:
@@ -51,15 +57,6 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
-    rules:
-      - linters:
-          - errorlint
-        source: \w\.\(\*?\w+\)\.\w+
-      - linters:
-          - errcheck
-          - errorlint
-          - gosec
-        path: (?:_test|test_util)\.go$
     paths:
       - third_party$
       - builtin$

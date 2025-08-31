@@ -94,11 +94,11 @@ func init() {
 
 	switch flag.NArg() {
 	case 0:
-		if cwd, err := os.Getwd(); err != nil {
+		var err error
+		inPath, err = os.Getwd()
+		if err != nil {
 			fmt.Fprintln(os.Stderr, "unable to detect current working directory:", err)
 			os.Exit(1)
-		} else {
-			inPath = cwd
 		}
 	case 1:
 		inPath = filepath.Clean(flag.Arg(0))

@@ -84,7 +84,7 @@ func TestHashToTempDir(t *testing.T) {
 }
 
 func dirsEqual(t *testing.T, a, b fs.FS) {
-	_ = fs.WalkDir(a, ".", func(path string, d fs.DirEntry, _ error) error {
+	_ = fs.WalkDir(a, ".", func(path string, _ fs.DirEntry, _ error) error {
 		var statA, statB fs.FileInfo
 
 		if path != "." {

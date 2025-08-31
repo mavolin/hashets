@@ -146,7 +146,7 @@ func HashToDir(inFS fs.FS, outPath string, o Options) (Map, error) {
 	o.setDefaults()
 
 	m := make(Map)
-	err := fs.WalkDir(inFS, ".", func(path string, dir fs.DirEntry, err error) error {
+	err := fs.WalkDir(inFS, ".", func(path string, dir fs.DirEntry, _ error) error {
 		path = strings.TrimPrefix(path, "./")
 		if dir == nil || dir.IsDir() {
 			if dir != nil && dir.IsDir() && path != "." {
