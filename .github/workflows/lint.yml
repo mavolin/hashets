@@ -1,15 +1,23 @@
 name: Lint
 
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches: [v1]
+
+permissions:
+  contents: read
 
 jobs:
   review:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Lint Project
-        uses: reviewdog/action-golangci-lint@v2
       - name: Checkout Repository
         uses: actions/checkout@v5
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          reporter: github-pr-review
+          go-version-file: go.mod
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
