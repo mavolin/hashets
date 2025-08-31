@@ -4,7 +4,7 @@ import (
 	"io/fs"
 )
 
-// FSWrapper wraps an [fs.FS] that maps hashed file names to the original file
+// FSWrapper wraps a [fs.FS] that maps hashed file names to the original file
 // names of the wrapped [fs.FS], so that a request for "foo_1234.txt" returns
 // the contents of "foo.txt".
 type FSWrapper struct {

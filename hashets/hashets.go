@@ -13,9 +13,8 @@ import (
 
 // Map represents a map of file paths to file paths with hashed names.
 //
-// For example for a file ./foo.txt with the hash 1234.
-// Map["foo.txt"] would return "foo_1234.txt", which is the name of the hashed
-// file.
+// For example for a file ./foo.txt with the hash 1234 Map["foo.txt"] would
+// return "foo_1234.txt", which is the name of the hashed file.
 type Map map[string]string
 
 // Get returns the hashed file path for the given file path to the unhashed
@@ -106,8 +105,10 @@ func HashFile(name string, in io.Reader, o Options) (string, error) {
 // If HashToTempDir has created the temporary directory, but returns an error,
 // the temporary directory will have been removed by HashToTempDir itself, and
 // the caller need not call the cleanup function.
-// However, the cleanup will never be nil, so it is safe to call it even if
-// an error was returned.
+//
+// HashToTempDir guarantees that the returned cleanup function is never nil and
+// is set to a no-op function as needed, so the caller may choose to always
+// call it for the sake of simplicity.
 //
 // The returned [Map] provides mappings from the original file path to the same
 // path, but with the file name replaced with the hashed file name, as returned

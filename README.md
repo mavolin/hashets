@@ -75,12 +75,12 @@ func init() {
 }
 ```
 
-`FS` now translates requests for `FS.Open("file_to_hash_generateHash.ext")` to `assets.Open("file_to_hash.ext")`.
+`FS` now translates requests for `FS.Open("file_to_hash_generatedHash.ext")` to `assets.Open("file_to_hash.ext")`.
 Additionally, `FileNames` maps all original file names to their hashed equivalents:
 
 ```go
 var FileNames = hashets.Map{
-    "file_to_hash.ext": "file_to_hash_generateHash.ext",
+    "file_to_hash.ext": "file_to_hash_generatedHash.ext",
 }
 ```
 
@@ -129,7 +129,7 @@ Your file structure should now look like this:
 ```
 static
 ├── hashed
-│   ├── file_to_hash_generateHash.ext
+│   ├── file_to_hash_generatedHash.ext
 │   └── hashets_map.go
 ├── orig
 │   └── file_to_hash.ext
@@ -146,7 +146,7 @@ package hashed
 import "github.com/mavolin/hashets/hashets"
 
 var FileNames = hashets.Map{
-    "file_to_hash.ext": "file_to_hash_generateHash.ext",
+    "file_to_hash.ext": "file_to_hash_generatedHash.ext",
 }
 ```
 
@@ -208,7 +208,7 @@ hashets -replace -ignore static.go static
 ```
 
 This will replace all of your assets with their hashed equivalents, i.e.
-replace `file_to_hash.ext` with `file_to_hash_generateHash.ext`.
+replace `file_to_hash.ext` with `file_to_hash_generatedHash.ext`.
 Additionally, it will overwrite `hashets_map.go` with a `FileNames` map that
 contains the correct mappings.
 

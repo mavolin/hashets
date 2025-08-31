@@ -32,12 +32,12 @@ var (
 	fileNamesVar     string
 
 	//
-	// ARGS.
+	// ARGS
 
 	inPath string
 
 	//
-	// ENVS.
+	// ENVS
 
 	packageName string // GOPACKAGE
 )
@@ -67,7 +67,7 @@ func init() {
 			include = append(include, s)
 			return nil
 		})
-	flag.BoolVar(&replace, "replace", false, "delete the original original files after hashing")
+	flag.BoolVar(&replace, "replace", false, "delete the original files after hashing")
 	flag.BoolVar(&mapOnly, "map-only", false, "generate code only without copying files. mutually exclusive with -replace")
 	flag.StringVar(&outPath, "o", "", "output directory (default DIR)")
 	flag.StringVar(&fileNamesVar, "var", "FileNames", "name of the variable in hashets_map.go")
@@ -148,7 +148,7 @@ func usage() {
 	fmt.Fprintln(flag.CommandLine.Output(), meta.Version, "(github.com/mavolin/hashets)")
 	fmt.Fprintln(flag.CommandLine.Output())
 	fmt.Fprintln(flag.CommandLine.Output(), "Generate hashes for all files in the current working directory or given directory")
-	fmt.Fprintln(flag.CommandLine.Output(), ",and clone its content into -o with the file names including hashes hashes.")
+	fmt.Fprintln(flag.CommandLine.Output(), "and clone its content into -o with the file names including hashes.")
 	fmt.Fprintln(flag.CommandLine.Output(), "Additionally, places a file named hashets_map.go in -o, that contains")
 	fmt.Fprintln(flag.CommandLine.Output(), "a single variable `FileNames` of type hashets.Map, which maps the original")
 	fmt.Fprintln(flag.CommandLine.Output(), "file names to the hashed file names.")

@@ -22,7 +22,7 @@ type Options struct {
 	// [Options.HashToText].
 	// It is expected to return a new file name containing the hash.
 	//
-	// Defaults to DefaultNamingFunc.
+	// Defaults to [DefaultNamingFunc].
 	NamingFunc func(name, hash string) string
 
 	// HashToText is the function to convert the hash to a string.
