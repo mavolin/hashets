@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.9.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
