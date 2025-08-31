@@ -32,6 +32,18 @@ func WrapFS(filesys fs.FS, o Options) (*FSWrapper, Map, error) {
 		return nil, nil, err
 	}
 
+	return WrapPrecomputedFS(filesys, m), m, nil
+}
+
+// WrapPrecomputedFS serves file requests for hashed filenames
+// from the given filesystem using the provided lookup map.
+// Failed lookups will pass the original request to the
+// underlying filesystem unaltered.
+// No verification of the retrieved file is performed against the
+// initial lookup, making this filesystem implementation prone to
+// Time-of-check/Time-of-use race conditions. Use it purely for
+// cachebusting reasons and not security related tasks.
+func WrapPrecomputedFS(filesys fs.FS, m Map) *FSWrapper {
 	reverseMap := make(map[string]string, len(m))
 	for k, v := range m {
 		reverseMap[v] = k
@@ -40,7 +52,7 @@ func WrapFS(filesys fs.FS, o Options) (*FSWrapper, Map, error) {
 	return &FSWrapper{
 		filesys:    filesys,
 		reverseMap: reverseMap,
-	}, m, nil
+	}
 }
 
 // Open returns the file represented by the passed hashed name.

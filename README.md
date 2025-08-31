@@ -98,7 +98,76 @@ http.Handle("/static/", http.FileServer(http.FS(FS)))
 
 Of course, instead of an `embed.FS`, you can also use any other `fs.FS` implementation, such as `os.DirFS`, etc.
 
-### Using `go generate`
+### Using `go generate` with `hashets.WrapPrecomputedFS`
+
+> **This method is for you, if:**
+>
+> * 📏 You have larger assets and need lightning fast startup times
+> * 🕑 You know your assets at compile time
+> * 🕵 You need cache busting during development and not just in production
+
+`hashets.WrapPrecomputedFS` is similar to `hashets.WrapFS` except it uses
+a precomputed `hashets.Map` for the provided filesystem, which ideally is
+generated using `go generate` for the provided filesystem during compile time.
+This saves the overhead of calculating the file hashes during startup.
+
+Add a `static.go` to your `static` directory:
+
+```
+static
+├── assets
+│   └── file_to_hash.ext
+└── static.go
+```
+
+```go
+package static
+
+import (
+	"embed"
+
+	"github.com/mavolin/hashets/hashets"
+)
+
+//go:embed assets/*
+var assets embed.FS
+
+//go:generate hashets -map-only -o . assets
+
+var (
+	// FileNames is defined in hashets_map.go, which is generated
+	// by `hashets` during code generation
+	FS = hashets.WrapPrecomputedFS(assets, FileNames)
+)
+```
+
+`FS` can now be used exactly the same as in the previous example. Using this
+method does not offer the same guarantees regarding integrity as computing
+the hashes at runtime, as there is no integrity check for the hashes and
+their associated files. This race condition is generally known as
+[time-of-check/time-of-use][TOCTOU]. The following shell replay demonstrates
+the problem:
+
+```bash
+go generate ./... # this will compute the FileNames map variable
+date > static/assets/file_to_hash.ext
+date > static/assets/new_file.ext
+go install .
+```
+
+The filesystem `assets` embedded into the binary will now have one additional
+file the `FileNames` map does not know about in addition to the existing file
+(`file_to_hash.ext`) having changed after computing its hash.
+
+Using this approach is only recommended if you have tight control over the
+build pipeline or simply do not care about the cache busting quality of
+the application. The example below somewhat mitigates that risk, providing
+a clearer distinction between already processed files and their originals, at
+the cost of file duplication.
+
+[TOCTOU]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
+
+### Using `go generate` with a separate "hashed" directory
 
 > **This method is for you, if:**
 >
